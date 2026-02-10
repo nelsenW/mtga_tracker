@@ -1,8 +1,3 @@
-"""
-MTGA Tracker - Database Schema
-Creates SQLite database with tables for matches, economy, and drafts
-"""
-
 import sqlite3
 from pathlib import Path
 
@@ -13,21 +8,17 @@ class MTGADatabase:
         self.conn = None
         
     def connect(self):
-        """Connect to SQLite database"""
         self.conn = sqlite3.connect(self.db_path)
         self.conn.row_factory = sqlite3.Row
         return self.conn
     
     def close(self):
-        """Close database connection"""
         if self.conn:
             self.conn.close()
     
     def initialize_schema(self):
-        """Create all tables if they don't exist"""
         cursor = self.conn.cursor()
         
-        # Matches table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS matches (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -47,7 +38,6 @@ class MTGADatabase:
             )
         ''')
         
-        # Economy snapshots table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS economy_snapshots (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +54,6 @@ class MTGADatabase:
             )
         ''')
         
-        # Drafts table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS drafts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,7 +69,6 @@ class MTGADatabase:
             )
         ''')
         
-        # Draft picks table
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS draft_picks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -95,7 +83,6 @@ class MTGADatabase:
             )
         ''')
         
-        # Config table for storing user info
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS config (
                 key TEXT PRIMARY KEY,
@@ -104,7 +91,6 @@ class MTGADatabase:
             )
         ''')
         
-        # Create indexes
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_matches_timestamp ON matches(start_timestamp)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_matches_event ON matches(event_id)')
         cursor.execute('CREATE INDEX IF NOT EXISTS idx_economy_timestamp ON economy_snapshots(timestamp)')
@@ -114,14 +100,12 @@ class MTGADatabase:
         print("Database schema initialized successfully")
     
     def get_user_id(self):
-        """Get stored user ID from config"""
         cursor = self.conn.cursor()
         cursor.execute('SELECT value FROM config WHERE key = ?', ('user_id',))
         row = cursor.fetchone()
         return row['value'] if row else None
     
     def set_user_id(self, user_id):
-        """Store user ID in config"""
         cursor = self.conn.cursor()
         cursor.execute('''
             INSERT OR REPLACE INTO config (key, value, updated_at)
@@ -130,7 +114,6 @@ class MTGADatabase:
         self.conn.commit()
     
     def insert_match_start(self, match_data):
-        """Insert new match or update if exists"""
         cursor = self.conn.cursor()
         cursor.execute('''
             INSERT OR IGNORE INTO matches (
@@ -150,7 +133,6 @@ class MTGADatabase:
         return cursor.lastrowid
     
     def update_match_completion(self, match_data):
-        """Update match with completion data"""
         cursor = self.conn.cursor()
         cursor.execute('''
             UPDATE matches
@@ -171,7 +153,6 @@ class MTGADatabase:
         self.conn.commit()
     
     def insert_economy_snapshot(self, economy_data):
-        """Insert economy snapshot"""
         cursor = self.conn.cursor()
         cursor.execute('''
             INSERT INTO economy_snapshots (
@@ -193,7 +174,6 @@ class MTGADatabase:
         return cursor.lastrowid
     
     def get_match_stats(self, limit=20):
-        """Get recent match statistics"""
         cursor = self.conn.cursor()
         cursor.execute('''
             SELECT 
@@ -211,7 +191,6 @@ class MTGADatabase:
         return cursor.fetchall()
     
     def get_win_rate(self, event_id=None):
-        """Calculate win rate, optionally filtered by event"""
         cursor = self.conn.cursor()
         if event_id:
             cursor.execute('''
@@ -235,7 +214,6 @@ class MTGADatabase:
 
 
 if __name__ == '__main__':
-    # Initialize database
     db = MTGADatabase()
     db.connect()
     db.initialize_schema()

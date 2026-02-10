@@ -1,8 +1,3 @@
-"""
-MTGA Tracker - Stats Viewer
-Display match statistics from the database
-"""
-
 from mtga_database import MTGADatabase
 from datetime import datetime
 
@@ -15,7 +10,6 @@ def display_stats():
     print("MTGA TRACKER - MATCH STATISTICS")
     print("=" * 70)
     
-    # Overall win rate
     stats = db.get_win_rate()
     if stats and stats['total_matches'] > 0:
         total = stats['total_matches']
@@ -23,20 +17,19 @@ def display_stats():
         losses = stats['losses']
         win_rate = (wins / total * 100) if total > 0 else 0
         
-        print(f"\n📊 OVERALL RECORD")
+        print(f"\n OVERALL RECORD")
         print(f"   Wins: {wins} | Losses: {losses} | Total: {total}")
         print(f"   Win Rate: {win_rate:.1f}%")
     else:
-        print("\n📊 No match data yet")
+        print("\n No match data yet")
     
-    # Recent matches
-    print(f"\n🎮 RECENT MATCHES")
+    print(f"\n RECENT MATCHES")
     print("-" * 70)
     matches = db.get_match_stats(limit=10)
     
     if matches:
         for match in matches:
-            result_emoji = "✅" if match['result'] == 'win' else "❌"
+            result_emoji = "" if match['result'] == 'win' else ""
             duration_min = match['duration_seconds'] // 60 if match['duration_seconds'] else 0
             
             print(f"{result_emoji} {match['result'].upper():4} vs {match['opponent_name']:20} "
@@ -44,8 +37,7 @@ def display_stats():
     else:
         print("No matches recorded yet")
     
-    # Event-specific stats
-    print(f"\n📈 STATS BY EVENT")
+    print(f"\n STATS BY EVENT")
     print("-" * 70)
     
     cursor = db.conn.cursor()
@@ -71,8 +63,7 @@ def display_stats():
     else:
         print("No event data yet")
     
-    # Economy snapshot
-    print(f"\n💰 LATEST ECONOMY")
+    print(f"\n LATEST ECONOMY")
     print("-" * 70)
     cursor.execute('''
         SELECT * FROM economy_snapshots 
